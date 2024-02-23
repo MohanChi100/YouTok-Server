@@ -11,6 +11,7 @@ import video
 import os
 import keyword_extraction
 from datetime import datetime
+import test_gemini
 
 import asyncio
 # import websockets
@@ -828,7 +829,49 @@ def generate_keywords():
     # else:
     #     return jsonify({'error': 'Invalid form submission'})
 
+@app.route('/gemini_get_keywords', methods = ['POST'])
+def gemini_get_keywords():
+    print("!!!!!@@@@@@@")
+    post_json = request.get_json()
+    print(post_json['title_list'])
+    result_string = ''
+    for item in post_json['title_list']:
+        result_string += f"{item},"
+    print(result_string)
+    response = test_gemini.gemini_generate_keywords(result_string)
+    print("--------------!!!------------------")
+    print(response)
+    return response
 
+@app.route('/youtube_search_test_api', methods = ['POST'])
+def youtube_search_test_api():
+    query = request.form.get('query')
+    print('query from main: ' + query)
+    # return [{'title': 'Marvin starts college - How I Met Your Mother #shorts', 'video_id': 'f3tCFRBC-3k'}, {'title': 'BARNEY&#39;S REVENGE  | How I met your mother #shorts #barneystinson #himym', 'video_id': 'DzEsvg5-2yE'}, {'title': 'Best Pickup Line Ever-Barney Stinson', 'video_id': 'TKhB6-G478w'}, {'title': 'ELE NÃO VEM... | How I Met Your Mother #shorts', 'video_id': 'PogYtME3C-0'}, {'title': 'when you walk in your parents room without knocking #shorts #mom #dad', 'video_id': 'd-P30p3dT78'}]
+    response, Next_PAGE_TOKEN = video.youtube_search(query, None)
+
+    # store video data
+    if response:
+        for result in response:
+            result_1 = video.get_video_metadata(result['video_id'])
+            if result_1:
+                meta_data = {
+                    'duration': video.process_duration(result_1['contentDetails']['duration']),
+                    'category': result_1['snippet']['categoryId'],
+                    'create_time': video.process_time(result_1['snippet']['publishedAt']),
+                    'view_count': result_1['statistics']['viewCount'],
+                    'creator': result_1['snippet']['channelTitle'],
+                    'title': result['title']
+                }
+                new_video = Video(vid=result['video_id'], duration=meta_data['duration'],
+                                  category=meta_data['category'],
+                                  create_time=meta_data['create_time'], view_count=meta_data['view_count'],
+                                  creator=meta_data['creator'], title=meta_data['title'])
+                db.session.merge(new_video)
+                db.session.commit()
+    # end store video data
+
+    return response
 
 
 if __name__ == '__main__':
@@ -852,5 +895,5 @@ if __name__ == '__main__':
         
     # app.run(debug=True)
 
-    # app.run(host='0.0.0.0', port=8080)
-    socketio.run(app, host='0.0.0.0', port=8080)
+    app.run(host='0.0.0.0', port=8080)
+    # socketio.run(app, host='0.0.0.0', port=8080)

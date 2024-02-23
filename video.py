@@ -17,14 +17,14 @@ from google.auth.transport.requests import Request
 # API_KEY = 'AIzaSyCiw74lqyjr6aglAlRBJkkhOkPmQwDJesI'
 # API_KEY = 'AIzaSyA17Kq_K8Z2HMo_ZrUmvBL_kxTyq8kV3-U'
 # API_KEY = 'AIzaSyDBBbmSa1oYutyGM6x7HQhKI87HYPV-5f8'
-API_KEY = 'AIzaSyCfSdnud7WLOsz-cdUh2FgPwDsCQSGjHpk' #shorts
-# API_KEY = 'AIzaSyDD56062udoEeGQ5pRkEfxKXQ7IPCRYMEs'
 
-MAX_RESULT = 10
+#API_KEY = 'AIzaSyCfSdnud7WLOsz-cdUh2FgPwDsCQSGjHpk' #shorts
+API_KEY = 'AIzaSyDD56062udoEeGQ5pRkEfxKXQ7IPCRYMEs'
+
+MAX_RESULT = 50
 MAX_COMMENT_RESULT = 10
 # Next_PAGE_TOKEN = None
 THUMBNAIL_FOLDER= 'static/YouTube_shorts_thumbnail/'
-
 
 def youtube_search(query, PAGE_TOKEN, max_results=MAX_RESULT):
     print('query: ' + query)
