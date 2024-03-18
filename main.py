@@ -10,8 +10,9 @@ from flask_cors import CORS
 import video
 import os
 import keyword_extraction
-from datetime import datetime
+from datetime import datetime, timedelta
 import test_gemini
+import random
 
 import asyncio
 # import websockets
@@ -234,8 +235,11 @@ def UseKeywordToQureyVideoByPageToken(query, uid, pageToken, resultCount):
 
 def GetKeywordListByUID(uid):
     keyword_list = []
+    print("*************GetKeywordListByUID*************: " + uid)
     result = Keyword.query.filter_by(uid=uid).all()
+    print("@@@@@@@@@@@@@@GetKeywordListByUID@@@@@@@@@@@@@@@")
     if result:
+        print("!!!!!!!!!!!!GetKeywordListByUID!!!!!!!!!!!!")
         for keyword_item in result:
             keyword_list.append(keyword_item.keyword)
         print(keyword_list)
@@ -256,7 +260,16 @@ class Keyword(db.Model):
     keyword = db.Column(db.String(100), primary_key=True)
 
     def __repr__(self):
-        return f"<Keyword: {self.vid}>"
+        return f"<Keyword: {self.uid}>"
+
+class Treatment(db.Model):
+    uid = db.Column(db.String(100), primary_key=True)
+    playmode = db.Column(db.Text)
+    week_1 = db.Column(db.Text)
+    week_2 = db.Column(db.Text)
+
+    def __repr__(self):
+        return f"<Treatment: {self.uid}>"
 
 class Video(db.Model):
     # id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -272,7 +285,6 @@ class Video(db.Model):
         return f"<Video: {self.vid}>"
 
 class VideoInteraction(db.Model):
-    # id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     uid = db.Column(db.String(100), primary_key=True)
     vid = db.Column(db.String(100), primary_key=True)
     start_time = db.Column(db.Text)
@@ -401,6 +413,23 @@ def VerifyUser():
         return 'true'
     else:
         return 'false'
+
+@app.route('/GetTreatment', methods = ['GET'])
+def GetTreatmentByUID():
+    uid = request.args.get('uid')
+    print("uid: " + uid)
+    treatment = Treatment.query.filter_by(uid=uid).first()
+    if treatment:
+        print("get treatment!!!!!!!")
+        user_treatment = {
+            'playmode': treatment.playmode,
+            'week_1': treatment.week_1,
+            'week_2': treatment.week_2}
+        print(user_treatment)
+        return user_treatment
+    else:
+        return ''
+
 
 @app.route('/SaveVideoData', methods = ['POST'])
 def VideoDataReceived():
@@ -794,7 +823,6 @@ def add_keyword_addkeyword():
     db.session.commit()
     return 'keyword added'
 
-
 @app.route('/AddVideos', methods = ['POST'])
 def test_get_and_store_like_video_meta_data_addvideos():
     # search_results = video.youtube_search(search_query, 50)
@@ -873,6 +901,123 @@ def youtube_search_test_api():
 
     return response
 
+# get maxmium 250 videos every day for each user
+@app.route('/GetEverydayVideoListForUser', methods = ['GET'])
+def GetEverydayVideoListForUser():
+    uid = request.args.get('uid')
+    print("GetEverydayVideoListForUser #### uid: " + uid)
+    keyword_list = GetKeywordListByUID(uid)
+
+    data = {
+        "video_id_list": [],
+        "likeCount_list": [],
+        "commentCount_list": []
+    }
+
+    for i, keyword in enumerate(keyword_list):
+        result_list, likeCount_list, commentCount_list = UseKeywordToQureyVideoByPageToken(keyword, uid, None, 25)
+        for result1 in result_list:
+            data["video_id_list"].append(result1)
+        for result2 in likeCount_list:
+            data["likeCount_list"].append(result2)
+        for result3 in commentCount_list:
+            data["commentCount_list"].append(result3)
+
+    # make the order random
+    combined = list(zip(data["video_id_list"], data["likeCount_list"], data["commentCount_list"]))
+    # Shuffle the combined list
+    random.shuffle(combined)
+    # Unzip the combined list back into individual lists
+    data["video_id_list"], data["likeCount_list"], data["commentCount_list"] = zip(*combined)
+    # Convert tuples back to lists
+    data["video_id_list"] = list(data["video_id_list"])
+    data["likeCount_list"] = list(data["likeCount_list"])
+    data["commentCount_list"] = list(data["commentCount_list"])
+
+    return data
+
+@app.route('/GetEverydayVideoListForUserLow', methods = ['GET'])
+def GetEverydayVideoListForUserLow():
+    data = {
+        "video_id_list": [],
+        "likeCount_list": [],
+        "commentCount_list": []
+    }
+
+    # Querying the first 200 Video records that are not present in the VideoInteraction table
+    videos = db.session.query(Video).outerjoin(VideoInteraction, Video.vid == VideoInteraction.vid) \
+        .filter(VideoInteraction.vid.is_(None)) \
+        .limit(200) \
+        .all()
+
+    for video in videos:
+        data["video_id_list"].append(video.vid)
+        data["likeCount_list"].append(str(random.randint(20, 30000)))
+        data["commentCount_list"].append(str(random.randint(20, 30000)))
+
+    return data
+@app.route('/GetEverydayVideoListForUserThumbnail', methods = ['GET'])
+def GetEverydayVideoListForUserThumbnail():
+    print('!!!!!!!!!call GetThumbnailList')
+    uid = request.values.get('uid')
+
+    video_id_list = []
+    thumbnail_list = []
+
+    keyword_list = GetKeywordListByUID(uid)
+    data = {
+        "video_id_list": [],
+        "likeCount_list": [],
+        "commentCount_list": []
+    }
+
+    for i, keyword in enumerate(keyword_list):
+        result_list, likeCount_list, commentCount_list = UseKeywordToQureyVideoByPageToken(keyword, uid, None, 25)
+        for result1 in result_list:
+            data["video_id_list"].append(result1)
+        for result2 in likeCount_list:
+            data["likeCount_list"].append(result2)
+        for result3 in commentCount_list:
+            data["commentCount_list"].append(result3)
+
+    # make the order random
+    combined = list(zip(data["video_id_list"], data["likeCount_list"], data["commentCount_list"]))
+    # Shuffle the combined list
+    random.shuffle(combined)
+    # Unzip the combined list back into individual lists
+    data["video_id_list"], data["likeCount_list"], data["commentCount_list"] = zip(*combined)
+    # Convert tuples back to lists
+    data["video_id_list"] = list(data["video_id_list"])
+    data["likeCount_list"] = list(data["likeCount_list"])
+    data["commentCount_list"] = list(data["commentCount_list"])
+
+    if data["video_id_list"]:
+        for i, video_id in enumerate(data["video_id_list"]):
+            video_item = Video.query.filter(Video.vid == video_id).first()
+            thumbnail_path = video.get_video_thumbnail_medium(video_item.vid)
+            thumbnail_list.append({
+                'thumbnail_path': thumbnail_path,
+                'video_id': video_item.vid,
+                'title': video_item.title,
+                'creator': video_item.creator,
+                'viewcount': video_item.view_count,
+                'likeCount': data["likeCount_list"][i],
+                'commentCount': data["commentCount_list"][i]})
+        print(thumbnail_list)
+        return thumbnail_list
+    else:
+        return thumbnail_list
+
+
+def get_week_number(start_date):
+    start_date = datetime.strptime(start_date, "%Y-%m-%d")
+    current_date = datetime.now()
+    weeks_since_start = (current_date - start_date).days // 7
+
+    if weeks_since_start % 2 == 0:
+        return "week_1"
+    else:
+        return "week_2"
 
 if __name__ == '__main__':
     with app.app_context():

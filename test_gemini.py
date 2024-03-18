@@ -11,8 +11,8 @@ import json
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from serpapi import GoogleSearch
-# API_KEY = 'AIzaSyDBBbmSa1oYutyGM6x7HQhKI87HYPV-5f8' #shorts project
-API_KEY = 'AIzaSyDD56062udoEeGQ5pRkEfxKXQ7IPCRYMEs' #test
+API_KEY = 'AIzaSyDBBbmSa1oYutyGM6x7HQhKI87HYPV-5f8' #shorts project
+# API_KEY = 'AIzaSyDD56062udoEeGQ5pRkEfxKXQ7IPCRYMEs' #test
 
 # prompt = "Give me 10 user-interested keywords from those YouTube shorts, make the keyword list in json format:"\
 # "TOP SONGS THIS WEEK MIX 🎶 TODAY'S TOP MUSIC 2024 🎶 POPULAR HITS 2024"\
@@ -58,7 +58,7 @@ model = genai.GenerativeModel('gemini-pro')
 
 
 def gemini_generate_keywords(title_list):
-  prompt = f"Give me 5 user-interested keywords from those YouTube videos, make the keyword list in a JSON format: {title_list}\n Example result:\"keywords\": [\"dewq\", \"eferfer\", \"frf\"]"
+  prompt = f"Give me 10 user-interested keyword categories (1-3 words in each category) from those YouTube videos, make the keyword list in a JSON format: {title_list}\n Example result:\"keywords\": [\"dewq\", \"eferfer\", \"frf\"]"
   print("prompt: " + prompt)
   response = model.generate_content(prompt)
   print("response.text:" + response.text)

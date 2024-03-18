@@ -11,15 +11,8 @@ import emoji
 # from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 
-# API_KEY = 'AIzaSyAjSa4cR1Li5cWtE3jChY8piErqi0USjqM'
-# API_KEY = 'AIzaSyCo3BNZw5xlvFINQg4GDIwNl2FVCnOS4wE' #test_account using yahoo mail
-# API_KEY = 'AIzaSyD0wYGda9P5y5A-IJGZoKfEXXi-CDAGPto'
-# API_KEY = 'AIzaSyCiw74lqyjr6aglAlRBJkkhOkPmQwDJesI'
-# API_KEY = 'AIzaSyA17Kq_K8Z2HMo_ZrUmvBL_kxTyq8kV3-U'
-# API_KEY = 'AIzaSyDBBbmSa1oYutyGM6x7HQhKI87HYPV-5f8'
-
-#API_KEY = 'AIzaSyCfSdnud7WLOsz-cdUh2FgPwDsCQSGjHpk' #shorts
-API_KEY = 'AIzaSyDD56062udoEeGQ5pRkEfxKXQ7IPCRYMEs'
+API_KEY = 'AIzaSyCfSdnud7WLOsz-cdUh2FgPwDsCQSGjHpk' #shorts
+# API_KEY = 'AIzaSyDD56062udoEeGQ5pRkEfxKXQ7IPCRYMEs'
 
 MAX_RESULT = 50
 MAX_COMMENT_RESULT = 10
