@@ -14,6 +14,8 @@ from datetime import datetime, timedelta
 import test_gemini
 import random
 
+
+
 import asyncio
 # import websockets
 import threading
@@ -363,10 +365,60 @@ class LikeVideo(db.Model):
         return f"<Video: {self.vid}>"
 
 
+class SurveyResponse(db.Model):
+    response_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    uid = db.Column(db.String(100))
+    date_submitted = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
+    session_duration_minutes = db.Column(db.Integer, nullable=False)
+    video_count = db.Column(db.Integer, nullable=False)
+    video_characters = db.Column(db.Text, nullable=True)
+    last_video_description = db.Column(db.Text, nullable=True)
+    session_keywords = db.Column(db.Text, nullable=True)
+    satisfaction_rating = db.Column(db.Integer, nullable=False)
+    interest_keywords = db.Column(db.Text, nullable=True)
+    favorite_video_description = db.Column(db.Text, nullable=True)
+
+    def __repr__(self):
+        return f"<SurveyResponse: {self.response_id}>"
+
 
 @app.route('/')
 def hello_world():
-    return 'Hello, World!'          
+    return 'Hello, World!'
+
+@app.route('/saveSurveyResponse', methods = ['POST'])
+def saveSurveyResponse():
+    print("Received data:", request.json)
+    uid = request.json.get('uid')
+    print("uid: ", uid)
+    session_duration_minutes = int(request.json.get('session_duration_minutes', 0))
+    video_count = int(request.json.get('video_count', 0))
+    video_characters = request.json.get('video_characters', '')
+    last_video_description = request.json.get('last_video_description', '')
+    session_keywords = request.json.get('session_keywords', '')
+    satisfaction_rating = int(request.json.get('satisfaction_rating', 0))
+    interest_keywords = request.json.get('interest_keywords', '')
+    favorite_video_description = request.json.get('favorite_video_description', '')
+
+    # Create a new survey response object
+    new_response = SurveyResponse(
+        uid=uid,
+        session_duration_minutes=session_duration_minutes,
+        video_count=video_count,
+        video_characters=video_characters,
+        last_video_description=last_video_description,
+        session_keywords=session_keywords,
+        satisfaction_rating=satisfaction_rating,
+        interest_keywords=interest_keywords,
+        favorite_video_description=favorite_video_description
+    )
+
+    # Add the new object to the database session and commit it
+    db.session.add(new_response)
+    db.session.commit()
+
+    # Return a success response
+    return jsonify({'message': 'Survey response saved successfully!'})
 
 @app.route('/QueryVideoByUID', methods = ['GET'])
 def QueryVideoByUID():
@@ -936,6 +988,7 @@ def GetEverydayVideoListForUser():
 
     return data
 
+# request the same video list everyday for each participant
 @app.route('/GetEverydayVideoListForUserLow', methods = ['GET'])
 def GetEverydayVideoListForUserLow():
     data = {
